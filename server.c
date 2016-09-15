@@ -3,6 +3,16 @@
 
 static const char *s_http_port = "8000";
 
+// returns true if node exists
+bool node_exists();
+// returns true if edge exists
+bool edge_exists();
+// returns true if nodes are the same
+bool same_node();
+
+// returns length of shortest path, or -1 if does not exist
+int shortest_path();
+
 static void respond(struct mg_connection *c, const char* code, const int length, const char* body) {
   mg_printf(c, "HTTP/1.1 %s\r\nContent-Length: %d\r\n"
                 "Content-Type: plain/text\r\n\r\n%s",
@@ -13,31 +23,109 @@ static void ev_handler(struct mg_connection *c, int ev, void *p) {
   if (ev == MG_EV_HTTP_REQUEST) {
     struct http_message *hm = (struct http_message *) p;
 
-    // We have received an HTTP request. Parsed request is contained in `hm`.
-    // Send HTTP reply to the client which shows full original request.
-    // mg_send_head(c, 200, hm->message.len, "Content-Type: text/plain");
-    // mg_printf(c, "%.*s", hm->message.len, hm->message.p);
+    // Sanity check, all valid endpoints have length at least 16
+    if(hm->uri.len < 16) return;
 
+    if(!strncmp(hm->uri.p, "/api/v1/add_node", hm->uri.len)) 
+    {
+      // if node already exists
+      if(node_exists()) 
+      {
+          respond(c, "204 No Content", 0, "");
+      } 
+      else 
+      {
+        respond(c, "200 OK", hm->uri.len, hm->uri.p);
+      }
+    } 
+    else if(!strncmp(hm->uri.p, "/api/v1/add_edge", hm->uri.len)) 
+    {
+      // if either node does not exist or if nodes are the same
+      if(!node_exists() || !node_exists() || same_node()) 
+      {
+        respond(c, "400 Bad Request", 0, "");
+      } 
+      // if edge exists
+      else if(edge_exists()) 
+      {
+        respond(c, "204 No Content", 0, "");
+      } 
+      else 
+      {
+        respond(c, "200 OK", hm->uri.len, hm->uri.p);
+      }
+    } 
+    else if(!strncmp(hm->uri.p, "/api/v1/remove_node", hm->uri.len)) 
+    {
+      // if node does not exist
+      if(!node_exists()) 
+      {
+        respond(c, "400 Bad Request", 0, "");
+      } 
+      else 
+      {
+        respond(c, "200 OK", hm->uri.len, hm->uri.p);
+      }
+    } 
+    else if(!strncmp(hm->uri.p, "/api/v1/remove_edge", hm->uri.len)) 
+    {
+      // if edge does not exist
+      if(!edge_exists()) 
+      {
+        respond(c, "400 Bad Request", 0, "");
+      } 
+      else 
+      {
+        respond(c, "200 OK", hm->uri.len, hm->uri.p);
+      }
+    } 
+    else if(!strncmp(hm->uri.p, "/api/v1/get_node", hm->uri.len)) 
+    {
+      // respond with a boolean JSON field in_graph indicating whether the node is in the graph
+      respond(c, "200 OK", hm->uri.len, hm->uri.p);
+    } 
+    else if(!strncmp(hm->uri.p, "/api/v1/get_edge", hm->uri.len)) 
+    {
+      // if either node does not exist
+      if(!node_exists() || !node_exists()) 
+      {
+        respond(c, "400 Bad Request", 0, "");
+      }
+      else 
+      {
+        // respond with a boolean JSON field in_graph indicating whether the edge is in the graph
+        respond(c, "200 OK", hm->uri.len, hm->uri.p);
+      }
+    } 
+    else if(!strncmp(hm->uri.p, "/api/v1/get_neighbors", hm->uri.len)) 
+    {
+      // if node does not exist
+      if(!node_exists()) 
+      {
+        respond(c, "400 Bad Request", 0, "");
+      }
+      else {
+        // responds with a list on neighbors
+        respond(c, "200 OK", hm->uri.len, hm->uri.p);
+      }
+    } 
+    else if(!strncmp(hm->uri.p, "/api/v1/shortest_path", hm->uri.len)) 
+    {
+      int path = shortest_path();
 
-    // mg_send_head(c, 404, hm->body.len, "Content-Type: text/plain");
-    // mg_printf(c, "%s", hm->body.p);
-
-    if(!strncmp(hm->uri.p, "/add_node", hm->uri.len)) {
-      respond(c, "404 Not found", hm->uri.len, hm->uri.p);
-    } else if(!strncmp(hm->uri.p, "/add_edge", hm->uri.len)) {
-      respond(c, "200 OK", hm->uri.len, hm->uri.p);
-    } else if(!strncmp(hm->uri.p, "/remove_node", hm->uri.len)) {
-      respond(c, "200 OK", hm->uri.len, hm->uri.p);
-    } else if(!strncmp(hm->uri.p, "/remove_edge", hm->uri.len)) {
-      respond(c, "200 OK", hm->uri.len, hm->uri.p);
-    } else if(!strncmp(hm->uri.p, "/get_node", hm->uri.len)) {
-      respond(c, "200 OK", hm->uri.len, hm->uri.p);
-    } else if(!strncmp(hm->uri.p, "/get_edge", hm->uri.len)) {
-      respond(c, "200 OK", hm->uri.len, hm->uri.p);
-    } else if(!strncmp(hm->uri.p, "/get_neighbors", hm->uri.len)) {
-      respond(c, "200 OK", hm->uri.len, hm->uri.p);
-    } else if(!strncmp(hm->uri.p, "/shortest_path", hm->uri.len)) {
-      respond(c, "200 OK", hm->uri.len, hm->uri.p);
+      // if either node does not exist
+      if(!node_exists() || !node_exists()) 
+      {
+        respond(c, "400 Bad Request", 0, "");
+      }
+      else if(path == -1) {
+        respond(c, "204 No Content", 0, "");
+      }
+      else 
+      {
+        // responds with a field distance containing the shortest path
+        respond(c, "200 OK", hm->uri.len, hm->uri.p);
+      }
     } 
   }
 }
@@ -57,34 +145,3 @@ int main(void) {
 
   return 0;
 }
-
-// /* HTTP message */
-// struct http_message {
-//   struct mg_str message; /* Whole message: request line + headers + body */
-
-//   /* HTTP Request line (or HTTP response line) */
-//   struct mg_str method; /* "GET" */
-//   struct mg_str uri;    /* "/my_file.html" */
-//   struct mg_str proto;  /* "HTTP/1.1" -- for both request and response */
-
-//   /* For responses, code and response status message are set */
-//   int resp_code;
-//   struct mg_str resp_status_msg;
-
-  
-//    * Query-string part of the URI. For example, for HTTP request
-//    *    GET /foo/bar?param1=val1&param2=val2
-//    *    |    uri    |     query_string     |
-//    *
-//    * Note that question mark character doesn't belong neither to the uri,
-//    * nor to the query_string
-   
-//   struct mg_str query_string;
-
-//   /* Headers */
-//   struct mg_str header_names[MG_MAX_HTTP_HEADERS];
-//   struct mg_str header_values[MG_MAX_HTTP_HEADERS];
-
-//   /* Message body */
-//   struct mg_str body; /* Zero-length for requests with no body */
-// };
