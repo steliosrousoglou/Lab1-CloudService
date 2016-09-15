@@ -13,12 +13,14 @@ bool same_node();
 // returns length of shortest path, or -1 if does not exist
 int shortest_path();
 
+// Responds to given connection with code and length bytes of body
 static void respond(struct mg_connection *c, const char* code, const int length, const char* body) {
   mg_printf(c, "HTTP/1.1 %s\r\nContent-Length: %d\r\n"
                 "Content-Type: plain/text\r\n\r\n%s",
                 code, length, body);
 }
 
+// Event handler for request
 static void ev_handler(struct mg_connection *c, int ev, void *p) {
   if (ev == MG_EV_HTTP_REQUEST) {
     struct http_message *hm = (struct http_message *) p;
@@ -118,7 +120,8 @@ static void ev_handler(struct mg_connection *c, int ev, void *p) {
       {
         respond(c, "400 Bad Request", 0, "");
       }
-      else if(path == -1) {
+      else if(path == -1) 
+      {
         respond(c, "204 No Content", 0, "");
       }
       else 
