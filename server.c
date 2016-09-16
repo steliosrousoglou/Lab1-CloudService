@@ -6,8 +6,6 @@
 
 extern vertex_map map;
 
-static const char *s_http_port = "8000";
-
 // // returns true if edge exists
 // bool edge_exists();
 // // returns length of shortest path, or -1 if does not exist
@@ -148,7 +146,17 @@ static void ev_handler(struct mg_connection *c, int ev, void *p) {
   }
 }
 
-int main(void) {
+int main(int argc, char** argv) {
+
+  // ensure correct number of arguments
+  if(argc != 2) {
+    fprintf(stderr, "Usage: ./cs426_graph_server <port>");
+    return 1;
+  }
+
+  const char *s_http_port = argv[1];
+
+  // ensure <port> is a number
   struct mg_mgr mgr;
   struct mg_connection *c;
 
