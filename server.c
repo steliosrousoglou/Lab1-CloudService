@@ -13,32 +13,37 @@ static const char *s_http_port = "8000";
 // // returns length of shortest path, or -1 if does not exist
 // int shortest_path();
 
-// Kill program
-void DIE() {
-  exit(1);
-}
-
 // Responds to given connection with code and length bytes of body
 static void respond(struct mg_connection *c, const char* code, const int length, const char* body) {
   mg_printf(c, "HTTP/1.1 %s\r\nContent-Length: %d\r\n"
-                "Content-Type: plain/text\r\n\r\n%s",
+                "Content-Type: application/json\r\n\r\n%s",
                 code, length, body);
+}
+
+// Kill program
+void DIE(struct mg_connection *c) {
+  respond(c, "400 Bad Request", 0, "");
 }
 
 // Event handler for request
 static void ev_handler(struct mg_connection *c, int ev, void *p) {
   if (ev == MG_EV_HTTP_REQUEST) {
     struct http_message *hm = (struct http_message *) p;
+    struct json_token* tokens = parse_json2(hm->body.p, hm->body.len);
 
     // Sanity check, all valid endpoints have length at least 16
     if(hm->uri.len < 16) return;
 
     if(!strncmp(hm->uri.p, "/api/v1/add_node", hm->uri.len)) 
-    { //TODO: take in json argument
+    { 
+      // sanity check of input body
+      if(strncmp(tokens[1].ptr, "node_id", tokens[1].len)) DIE(c);
+
       // returns true if successfully added
-      if(add_vertex(5)) 
+      if(add_vertex(atoi(tokens[2].ptr))) 
       {
-        respond(c, "200 OK", hm->uri.len, hm->uri.p);
+        // TODO: respond with json object
+        respond(c, "200 OK", hm->body.len, hm->body.p);
       } 
       else 
       {
@@ -64,11 +69,14 @@ static void ev_handler(struct mg_connection *c, int ev, void *p) {
       // }
     } 
     else if(!strncmp(hm->uri.p, "/api/v1/remove_node", hm->uri.len)) 
-    { //TODO: take in json argument
+    { 
+       // sanity check of input body
+      if(strncmp(tokens[1].ptr, "node_id", tokens[1].len)) DIE(c);
+
       // if node does not exist
-      if(remove_vertex(5)) 
+      if(remove_vertex(atoi(tokens[2].ptr))) 
       {
-        respond(c, "200 OK", hm->uri.len, hm->uri.p);
+        respond(c, "200 OK", tokens[2].len, tokens[2].ptr);
       } 
       else 
       {
