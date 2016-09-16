@@ -1,12 +1,19 @@
 #include <string.h>
+#include <stdbool.h>
 #include "mongoose.h"
+#include "headers.h"
 
 static const char *s_http_port = "8000";
 
-// returns true if edge exists
-bool edge_exists();
-// returns length of shortest path, or -1 if does not exist
-int shortest_path();
+// // returns true if edge exists
+// bool edge_exists();
+// // returns length of shortest path, or -1 if does not exist
+// int shortest_path();
+
+// Kill program
+void DIE() {
+  exit(1);
+}
 
 // Responds to given connection with code and length bytes of body
 static void respond(struct mg_connection *c, const char* code, const int length, const char* body) {
@@ -38,44 +45,44 @@ static void ev_handler(struct mg_connection *c, int ev, void *p) {
     } 
     else if(!strncmp(hm->uri.p, "/api/v1/add_edge", hm->uri.len)) 
     {
-      // if either node does not exist or if nodes are the same
-      if(!vertex_exists() || !vertex_exists() || same_vertex()) 
-      {
-        respond(c, "400 Bad Request", 0, "");
-      } 
-      // if edge exists
-      else if(edge_exists()) 
-      {
-        respond(c, "204 No Content", 0, "");
-      } 
-      else 
-      {
-        respond(c, "200 OK", hm->uri.len, hm->uri.p);
-      }
+      // // if either node does not exist or if nodes are the same
+      // if(!vertex_exists() || !vertex_exists() || same_vertex()) 
+      // {
+      //   respond(c, "400 Bad Request", 0, "");
+      // } 
+      // // if edge exists
+      // else if(edge_exists()) 
+      // {
+      //   respond(c, "204 No Content", 0, "");
+      // } 
+      // else 
+      // {
+      //   respond(c, "200 OK", hm->uri.len, hm->uri.p);
+      // }
     } 
     else if(!strncmp(hm->uri.p, "/api/v1/remove_node", hm->uri.len)) 
     {
-      // if node does not exist
-      if(!vertex_exists()) 
-      {
-        respond(c, "400 Bad Request", 0, "");
-      } 
-      else 
-      {
-        respond(c, "200 OK", hm->uri.len, hm->uri.p);
-      }
+      // // if node does not exist
+      // if(!vertex_exists()) 
+      // {
+      //   respond(c, "400 Bad Request", 0, "");
+      // } 
+      // else 
+      // {
+      //   respond(c, "200 OK", hm->uri.len, hm->uri.p);
+      // }
     } 
     else if(!strncmp(hm->uri.p, "/api/v1/remove_edge", hm->uri.len)) 
     {
-      // if edge does not exist
-      if(!edge_exists()) 
-      {
-        respond(c, "400 Bad Request", 0, "");
-      } 
-      else 
-      {
-        respond(c, "200 OK", hm->uri.len, hm->uri.p);
-      }
+      // // if edge does not exist
+      // if(!edge_exists()) 
+      // {
+      //   respond(c, "400 Bad Request", 0, "");
+      // } 
+      // else 
+      // {
+      //   respond(c, "200 OK", hm->uri.len, hm->uri.p);
+      // }
     } 
     else if(!strncmp(hm->uri.p, "/api/v1/get_node", hm->uri.len)) 
     {
@@ -84,47 +91,47 @@ static void ev_handler(struct mg_connection *c, int ev, void *p) {
     } 
     else if(!strncmp(hm->uri.p, "/api/v1/get_edge", hm->uri.len)) 
     {
-      // if either node does not exist
-      if(!vertex_exists() || !vertex_exists()) 
-      {
-        respond(c, "400 Bad Request", 0, "");
-      }
-      else 
-      {
-        // respond with a boolean JSON field in_graph indicating whether the edge is in the graph
-        respond(c, "200 OK", hm->uri.len, hm->uri.p);
-      }
+      // // if either node does not exist
+      // if(!vertex_exists() || !vertex_exists()) 
+      // {
+      //   respond(c, "400 Bad Request", 0, "");
+      // }
+      // else 
+      // {
+      //   // respond with a boolean JSON field in_graph indicating whether the edge is in the graph
+      //   respond(c, "200 OK", hm->uri.len, hm->uri.p);
+      // }
     } 
     else if(!strncmp(hm->uri.p, "/api/v1/get_neighbors", hm->uri.len)) 
     {
-      // if node does not exist
-      if(!vertex_exists()) 
-      {
-        respond(c, "400 Bad Request", 0, "");
-      }
-      else {
-        // responds with a list on neighbors
-        respond(c, "200 OK", hm->uri.len, hm->uri.p);
-      }
+      // // if node does not exist
+      // if(!vertex_exists()) 
+      // {
+      //   respond(c, "400 Bad Request", 0, "");
+      // }
+      // else {
+      //   // responds with a list on neighbors
+      //   respond(c, "200 OK", hm->uri.len, hm->uri.p);
+      // }
     } 
     else if(!strncmp(hm->uri.p, "/api/v1/shortest_path", hm->uri.len)) 
     {
-      int path = shortest_path();
+      // int path = shortest_path();
 
-      // if either node does not exist
-      if(!vertex_exists() || !vertex_exists()) 
-      {
-        respond(c, "400 Bad Request", 0, "");
-      }
-      else if(path == -1) 
-      {
-        respond(c, "204 No Content", 0, "");
-      }
-      else 
-      {
-        // responds with a field distance containing the shortest path
-        respond(c, "200 OK", hm->uri.len, hm->uri.p);
-      }
+      // // if either node does not exist
+      // if(!vertex_exists() || !vertex_exists()) 
+      // {
+      //   respond(c, "400 Bad Request", 0, "");
+      // }
+      // else if(path == -1) 
+      // {
+      //   respond(c, "204 No Content", 0, "");
+      // }
+      // else 
+      // {
+      //   // responds with a field distance containing the shortest path
+      //   respond(c, "200 OK", hm->uri.len, hm->uri.p);
+      // }
     } 
   }
 }
