@@ -46,9 +46,13 @@ void all_nodes();
 	Linked-list (edges) API prototypes
 */
 
-// inserts node in given LL
+// Inserts node in given LL
 void LL_insert(edge** head, uint64_t n);
-// returns true if n is in given linked list
+// Returns true if n is in given linked list
 bool LL_contains(edge** head, uint64_t n);
+// Removes n from linked list
+bool LL_delete(edge** head, uint64_t n);
 // Adds edge, returns 400, 204 or 200
 int add_edge(uint64_t a, uint64_t b);
+// Removes edge, returns false if it didn't exist
+bool remove_edge(uint64_t a, uint64_t b);

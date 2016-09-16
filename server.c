@@ -55,6 +55,7 @@ static void ev_handler(struct mg_connection *c, int ev, void *p) {
     {
       // sanity check of input body
       if(strncmp(tokens[1].ptr, "node_a_id", tokens[1].len) || strncmp(tokens[3].ptr, "node_b_id", tokens[3].len)) DIE(c);
+
       switch (add_edge(atoi(tokens[2].ptr), atoi(tokens[4].ptr))) {
         case 400:
           respond(c, "400 Bad Request", 0, "");
@@ -63,20 +64,6 @@ static void ev_handler(struct mg_connection *c, int ev, void *p) {
         case 200:
           respond(c, "200 OK", hm->body.len, hm->body.p);
       }
-      // // if either node does not exist or if nodes are the same
-      // if(!vertex_exists() || !vertex_exists() || same_vertex()) 
-      // {
-      //   respond(c, "400 Bad Request", 0, "");
-      // } 
-      // // if edge exists
-      // else if(edge_exists()) 
-      // {
-      //   respond(c, "204 No Content", 0, "");
-      // } 
-      // else 
-      // {
-      //   respond(c, "200 OK", hm->uri.len, hm->uri.p);
-      // }
     } 
     else if(!strncmp(hm->uri.p, "/api/v1/remove_node", hm->uri.len)) 
     { 
@@ -95,15 +82,19 @@ static void ev_handler(struct mg_connection *c, int ev, void *p) {
     } 
     else if(!strncmp(hm->uri.p, "/api/v1/remove_edge", hm->uri.len)) 
     {
-      // // if edge does not exist
-      // if(!edge_exists()) 
-      // {
-      //   respond(c, "400 Bad Request", 0, "");
-      // } 
-      // else 
-      // {
-      //   respond(c, "200 OK", hm->uri.len, hm->uri.p);
-      // }
+      // sanity check of input body
+      if(strncmp(tokens[1].ptr, "node_a_id", tokens[1].len) || strncmp(tokens[3].ptr, "node_b_id", tokens[3].len)) DIE(c);
+
+      // if edge does not exist
+      if(remove_edge(atoi(tokens[2].ptr), atoi(tokens[4].ptr))) 
+      {
+          respond(c, "200 OK", hm->body.len, hm->body.p);
+          respond(c, "400 Bad Request", 0, "");
+      } 
+      else 
+      {
+        respond(c, "200 OK", hm->uri.len, hm->uri.p);
+      }
     } 
     else if(!strncmp(hm->uri.p, "/api/v1/get_node", hm->uri.len)) 
     {

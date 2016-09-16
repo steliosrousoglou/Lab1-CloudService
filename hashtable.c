@@ -106,6 +106,7 @@ void all_nodes() {
 	Linked-list API
 */
 
+// Inserts n into linked list
 void LL_insert(edge** head, uint64_t n){
     edge* newnode = malloc(sizeof(edge));
     newnode->b = n;
@@ -124,6 +125,7 @@ void LL_insert(edge** head, uint64_t n){
     }
 }
 
+// Returns true if n is in the linked list
 bool LL_contains(edge** head, uint64_t n) {
     edge* ptr = *head; 
     while(ptr) {
@@ -133,15 +135,40 @@ bool LL_contains(edge** head, uint64_t n) {
     return false;
 }
 
+// Removes n from linked list
+bool LL_delete(edge** head, uint64_t n)
+{
+    if(*head == NULL) return false;
+    else {
+        edge* tmp = *head;
+        if(tmp->b == n) {
+            tmp = tmp->next;
+            free(*head);
+            *head = tmp;
+            return true;
+        }
+
+        while(tmp->next)
+        {
+            if(tmp->next->b == n) {
+                edge* tmp2 = tmp->next->next;
+                free(tmp->next);
+                tmp->next = tmp2;
+                return true;
+            }
+            tmp = tmp->next;
+        }
+    }
+    return false;
+}
+
 // Adds edge, returns 
 int add_edge(uint64_t a, uint64_t b) {
 	vertex** table = map.table;
-	// hash values
-	int hashA = hash_vertex(a);
-	int hashB = hash_vertex(b);
 
-	vertex* v1 = table[hashA];
-	vertex* v2 = table[hashB];
+	vertex* v1 = table[hash_vertex(a)];
+	vertex* v2 = table[hash_vertex(b)];
+
 	// find vertex a
 	while(v1) {
 		if (v1->id == a) break;
@@ -161,4 +188,28 @@ int add_edge(uint64_t a, uint64_t b) {
 	LL_insert(&(v1->head), b);
 	LL_insert(&(v2->head), a);
 	return 200;
+}
+
+// Removes edge, returns false if it didn't exist
+bool remove_edge(uint64_t a, uint64_t b) {
+	vertex** table = map.table;
+	
+	vertex* v1 = table[hash_vertex(a)];
+	vertex* v2 = table[hash_vertex(b)];
+
+	// find vertex a
+	while(v1) {
+		if (v1->id == a) break;
+		v1 = v1->next;
+	}
+	// find vertex b
+	while(v2) {
+		if (v2->id == b) break;
+		v2 = v2->next;
+	}
+
+	// can't remove edge
+	if(!v1 || !v2) return false;
+
+	return (LL_delete(&(v1->head), b) && LL_delete(&(v2->head), a));
 }
