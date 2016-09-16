@@ -3,13 +3,8 @@
 
 static const char *s_http_port = "8000";
 
-// returns true if node exists
-bool node_exists();
 // returns true if edge exists
 bool edge_exists();
-// returns true if nodes are the same
-bool same_node();
-
 // returns length of shortest path, or -1 if does not exist
 int shortest_path();
 
@@ -30,20 +25,21 @@ static void ev_handler(struct mg_connection *c, int ev, void *p) {
 
     if(!strncmp(hm->uri.p, "/api/v1/add_node", hm->uri.len)) 
     {
-      // if node already exists
-      if(node_exists()) 
+      // returns true if successfully added
+      if(add_vertex(5)) 
       {
-          respond(c, "204 No Content", 0, "");
+        respond(c, "200 OK", hm->uri.len, hm->uri.p);
       } 
       else 
       {
-        respond(c, "200 OK", hm->uri.len, hm->uri.p);
+        // vertex already existed
+        respond(c, "204 OK", 0, "");
       }
     } 
     else if(!strncmp(hm->uri.p, "/api/v1/add_edge", hm->uri.len)) 
     {
       // if either node does not exist or if nodes are the same
-      if(!node_exists() || !node_exists() || same_node()) 
+      if(!vertex_exists() || !vertex_exists() || same_vertex()) 
       {
         respond(c, "400 Bad Request", 0, "");
       } 
@@ -60,7 +56,7 @@ static void ev_handler(struct mg_connection *c, int ev, void *p) {
     else if(!strncmp(hm->uri.p, "/api/v1/remove_node", hm->uri.len)) 
     {
       // if node does not exist
-      if(!node_exists()) 
+      if(!vertex_exists()) 
       {
         respond(c, "400 Bad Request", 0, "");
       } 
@@ -89,7 +85,7 @@ static void ev_handler(struct mg_connection *c, int ev, void *p) {
     else if(!strncmp(hm->uri.p, "/api/v1/get_edge", hm->uri.len)) 
     {
       // if either node does not exist
-      if(!node_exists() || !node_exists()) 
+      if(!vertex_exists() || !vertex_exists()) 
       {
         respond(c, "400 Bad Request", 0, "");
       }
@@ -102,7 +98,7 @@ static void ev_handler(struct mg_connection *c, int ev, void *p) {
     else if(!strncmp(hm->uri.p, "/api/v1/get_neighbors", hm->uri.len)) 
     {
       // if node does not exist
-      if(!node_exists()) 
+      if(!vertex_exists()) 
       {
         respond(c, "400 Bad Request", 0, "");
       }
@@ -116,7 +112,7 @@ static void ev_handler(struct mg_connection *c, int ev, void *p) {
       int path = shortest_path();
 
       // if either node does not exist
-      if(!node_exists() || !node_exists()) 
+      if(!vertex_exists() || !vertex_exists()) 
       {
         respond(c, "400 Bad Request", 0, "");
       }
