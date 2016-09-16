@@ -1,7 +1,10 @@
 #include <string.h>
 #include <stdbool.h>
+
 #include "mongoose.h"
 #include "headers.h"
+
+extern vertex_map map;
 
 static const char *s_http_port = "8000";
 
@@ -31,7 +34,7 @@ static void ev_handler(struct mg_connection *c, int ev, void *p) {
     if(hm->uri.len < 16) return;
 
     if(!strncmp(hm->uri.p, "/api/v1/add_node", hm->uri.len)) 
-    {
+    { //TODO: take in json argument
       // returns true if successfully added
       if(add_vertex(5)) 
       {
@@ -61,16 +64,16 @@ static void ev_handler(struct mg_connection *c, int ev, void *p) {
       // }
     } 
     else if(!strncmp(hm->uri.p, "/api/v1/remove_node", hm->uri.len)) 
-    {
-      // // if node does not exist
-      // if(!vertex_exists()) 
-      // {
-      //   respond(c, "400 Bad Request", 0, "");
-      // } 
-      // else 
-      // {
-      //   respond(c, "200 OK", hm->uri.len, hm->uri.p);
-      // }
+    { //TODO: take in json argument
+      // if node does not exist
+      if(remove_vertex(5)) 
+      {
+        respond(c, "200 OK", hm->uri.len, hm->uri.p);
+      } 
+      else 
+      {
+        respond(c, "400 Bad Request", 0, "");
+      }
     } 
     else if(!strncmp(hm->uri.p, "/api/v1/remove_edge", hm->uri.len)) 
     {
@@ -143,6 +146,11 @@ int main(void) {
   mg_mgr_init(&mgr, NULL);
   c = mg_bind(&mgr, s_http_port, ev_handler);
   mg_set_protocol_http_websocket(c);
+
+  map.size = 0;
+  map.table = malloc(SIZE*sizeof(vertex*));
+
+  for(int i=0; i<SIZE; i++) (map.table)[i] = NULL;
 
   for (;;) {
     mg_mgr_poll(&mgr, 1000);

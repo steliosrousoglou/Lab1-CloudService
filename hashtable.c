@@ -10,7 +10,7 @@
 #include "headers.h"
 
 // global hashtable for vertices
-vertex_map vertexmap;
+vertex_map map;
 
 // Returns hash value
 int hash_vertex(uint64_t id) {
@@ -31,7 +31,7 @@ bool vertex_exists(vertex* index, uint64_t id) {
 // Adds vertex, returns false is vertex existed
 bool add_vertex(uint64_t id) {
 	int hash = hash_vertex(id);
-	vertex** table = vertexmap.table;
+	vertex** table = map.table;
 
 	if(vertex_exists(table[hash], id)) return false;
 
@@ -40,7 +40,7 @@ bool add_vertex(uint64_t id) {
 	new->id = id;
 	new->next = table[hash];
 	table[hash] = new;
-	vertexmap.size += 1;
+	map.size += 1;
 	return true;
 }
 
@@ -74,17 +74,17 @@ bool delete_vertex(vertex** head, uint64_t id)
 // Removes vertex, returns false is vertex does not exist
 bool remove_vertex(uint64_t id) {
 	int hash = hash_vertex(id);
-	vertex** table = vertexmap.table;
+	vertex** table = map.table;
 
 	if(delete_vertex(&(table[hash]), id)) {
-		vertexmap.size -= 1;
+		map.size -= 1;
 		return true;
 	} else return false;
 }
 
 // For testing, print all nodes
 void all_nodes() {
-	vertex** table = vertexmap.table;
+	vertex** table = map.table;
 
 	for(int i=0; i<SIZE; i++) {
 		vertex* ptr = table[i];

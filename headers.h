@@ -1,12 +1,20 @@
+// size of hashtable
 #define SIZE (100000)
 
+// prototype for exit function
 void DIE();
 
+/*
+	Hashtable API prototypes
+*/
+
+// vertex node definition
 typedef struct vertex {
 	uint64_t id;
 	struct vertex* next;
 } vertex;
 
+// vertex hashtable definition
 typedef struct vertex_map {
 	vertex** table;
 	size_t size;
