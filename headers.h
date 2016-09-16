@@ -8,10 +8,17 @@ void DIE();
 	Hashtable API prototypes
 */
 
+// edge node definition
+typedef struct edge {
+	uint64_t b;				// adjacent vertex
+	struct edge* next;		// for chaining
+} edge;
+
 // vertex node definition
 typedef struct vertex {
-	uint64_t id;
-	struct vertex* next;
+	uint64_t id;			// unique id of vertex
+	edge* head; 			// linked list of edges
+	struct vertex* next;	// for chaining
 } vertex;
 
 // vertex hashtable definition

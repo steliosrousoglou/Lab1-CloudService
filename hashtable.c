@@ -45,6 +45,7 @@ bool add_vertex(uint64_t id) {
 }
 
 // Helper, returns false if vertex does not exist
+// TODO: delete all edges adjacent to vertex
 bool delete_vertex(vertex** head, uint64_t id)
 {
     if(*head == NULL) return false;
