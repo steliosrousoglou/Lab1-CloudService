@@ -32,7 +32,7 @@ int hash_vertex(uint64_t id);
 // return true if vertices the same 
 bool same_vertex(uint64_t a, uint64_t b);
 // return true if vertex exists
-bool vertex_exists(vertex* index, uint64_t id);
+bool vertex_exists(uint64_t id);
 // adds vertex, returns false is vertex existed
 bool add_vertex(uint64_t id);
 // helper, returns false if vertex does not exist

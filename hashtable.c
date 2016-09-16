@@ -18,7 +18,11 @@ int hash_vertex(uint64_t id) {
 }
 
 // Returns true if vertex exists
-bool vertex_exists(vertex* index, uint64_t id) {
+bool vertex_exists(uint64_t id) {
+	int hash = hash_vertex(id);
+	vertex** table = map.table;
+	vertex* index = table[hash];
+
 	if(index != NULL) {
 		if(index->id == id) return true;
 		while(index->next) {
@@ -33,7 +37,7 @@ bool add_vertex(uint64_t id) {
 	int hash = hash_vertex(id);
 	vertex** table = map.table;
 
-	if(vertex_exists(table[hash], id)) return false;
+	if(vertex_exists(id)) return false;
 
 	vertex* new = malloc(sizeof(vertex));
 	if(!new) DIE();
