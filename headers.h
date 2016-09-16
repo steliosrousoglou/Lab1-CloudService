@@ -41,3 +41,14 @@ bool delete_vertex(vertex** head, uint64_t id);
 bool remove_vertex(uint64_t id);
 // For testing, print all nodes
 void all_nodes();
+
+/*
+	Linked-list (edges) API prototypes
+*/
+
+// inserts node in given LL
+void LL_insert(edge** head, uint64_t n);
+// returns true if n is in given linked list
+bool LL_contains(edge** head, uint64_t n);
+// Adds edge, returns 400, 204 or 200
+int add_edge(uint64_t a, uint64_t b);

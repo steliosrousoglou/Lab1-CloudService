@@ -9,6 +9,10 @@
 
 #include "headers.h"
 
+/*
+	Hashtable API
+*/
+
 // global hashtable for vertices
 vertex_map map;
 
@@ -39,6 +43,7 @@ bool add_vertex(uint64_t id) {
 	if(!new) DIE();
 	new->id = id;
 	new->next = table[hash];
+	new->head = NULL;
 	table[hash] = new;
 	map.size += 1;
 	return true;
@@ -94,4 +99,66 @@ void all_nodes() {
 			ptr = ptr->next;
 		}
 	}
+}
+
+
+/*
+	Linked-list API
+*/
+
+void LL_insert(edge** head, uint64_t n){
+    edge* newnode = malloc(sizeof(edge));
+    newnode->b = n;
+    newnode->next = NULL;
+
+    if(*head==NULL)
+    {
+        *head = newnode;
+    }
+    else
+    {
+        edge* temp; 
+        temp = *head;
+        *head = newnode;
+        newnode->next = temp;
+    }
+}
+
+bool LL_contains(edge** head, uint64_t n) {
+    edge* ptr = *head; 
+    while(ptr) {
+        if(ptr->b == n) return true;
+        ptr = ptr->next;
+    }
+    return false;
+}
+
+// Adds edge, returns 
+int add_edge(uint64_t a, uint64_t b) {
+	vertex** table = map.table;
+	// hash values
+	int hashA = hash_vertex(a);
+	int hashB = hash_vertex(b);
+
+	vertex* v1 = table[hashA];
+	vertex* v2 = table[hashB];
+	// find vertex a
+	while(v1) {
+		if (v1->id == a) break;
+		v1 = v1->next;
+	}
+	// find vertex b
+	while(v2) {
+		if (v2->id == b) break;
+		v2 = v2->next;
+	}
+
+	// code 400
+	if(!v1 || !v2 || a == b) return 400;
+
+	if(LL_contains(&(v1->head), b)) return 204;
+
+	LL_insert(&(v1->head), b);
+	LL_insert(&(v2->head), a);
+	return 200;
 }

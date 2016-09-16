@@ -53,6 +53,16 @@ static void ev_handler(struct mg_connection *c, int ev, void *p) {
     } 
     else if(!strncmp(hm->uri.p, "/api/v1/add_edge", hm->uri.len)) 
     {
+      // sanity check of input body
+      if(strncmp(tokens[1].ptr, "node_a_id", tokens[1].len) || strncmp(tokens[3].ptr, "node_b_id", tokens[3].len)) DIE(c);
+      switch (add_edge(atoi(tokens[2].ptr), atoi(tokens[4].ptr))) {
+        case 400:
+          respond(c, "400 Bad Request", 0, "");
+        case 204:
+          respond(c, "204 No Content", 0, "");
+        case 200:
+          respond(c, "200 OK", hm->body.len, hm->body.p);
+      }
       // // if either node does not exist or if nodes are the same
       // if(!vertex_exists() || !vertex_exists() || same_vertex()) 
       // {
