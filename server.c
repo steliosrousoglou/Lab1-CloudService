@@ -53,7 +53,7 @@ static void ev_handler(struct mg_connection *c, int ev, void *p) {
     {
       // sanity check of input body
       if(strncmp(tokens[1].ptr, "node_a_id", tokens[1].len) || strncmp(tokens[3].ptr, "node_b_id", tokens[3].len)) DIE(c);
-
+      // fix incase of things fucking up
       switch (add_edge(atoi(tokens[2].ptr), atoi(tokens[4].ptr))) {
         case 400:
           respond(c, "400 Bad Request", 0, "");
@@ -101,7 +101,13 @@ static void ev_handler(struct mg_connection *c, int ev, void *p) {
     } 
     else if(!strncmp(hm->uri.p, "/api/v1/get_edge", hm->uri.len)) 
     {
-      // // if either node does not exist
+      // //todo: should we be testing that the field is the right length?
+      // if(strncmp(tokens[1].ptr, "node_a_id", tokens[1].len) || 
+      // strncmp(tokens[3].ptr, "node_b_id", tokens[3].len)) DIE(c);
+      // uint64_t id1 = atoi(tokens[2].ptr);
+      //   uint64_t id2 = atoi(tokens[2].ptr);
+
+      // // // if either node does not exist
       // if(!vertex_exists() || !vertex_exists()) 
       // {
       //   respond(c, "400 Bad Request", 0, "");
@@ -126,22 +132,24 @@ static void ev_handler(struct mg_connection *c, int ev, void *p) {
     } 
     else if(!strncmp(hm->uri.p, "/api/v1/shortest_path", hm->uri.len)) 
     {
-      // int path = shortest_path();
-
-      // // if either node does not exist
-      // if(!vertex_exists() || !vertex_exists()) 
-      // {
-      //   respond(c, "400 Bad Request", 0, "");
-      // }
-      // else if(path == -1) 
-      // {
-      //   respond(c, "204 No Content", 0, "");
-      // }
-      // else 
-      // {
-      //   // responds with a field distance containing the shortest path
-      //   respond(c, "200 OK", hm->uri.len, hm->uri.p);
-      // }
+      if(strncmp(tokens[1].ptr, "node_a_id", tokens[1].len) || 
+        strncmp(tokens[3].ptr, "node_b_id", tokens[3].len)) DIE(c);
+        uint64_t id1 = atoi(tokens[2].ptr);
+        uint64_t id2 = atoi(tokens[2].ptr);
+      // if either node does not exist
+      if(!vertex_exists(id1) || !vertex_exists(id2)) {
+        respond(c, "400 Bad Request", 0, "");
+      }
+      else {
+        int path = shortest_path(id1, id2);
+        if (path == -1){
+          respond(c, "204 No Content", 0, "");
+        }
+        else {
+        // responds with a field distance containing the shortest path
+          respond(c, "200 OK", hm->uri.len, hm->uri.p);
+        }
+      }
     } 
   }
 }
