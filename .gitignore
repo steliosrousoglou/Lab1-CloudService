@@ -1,3 +1,4 @@
 server
+.DS_Store
 server.dSYM/
 struct_message
