@@ -33,7 +33,7 @@ bool vertex_exists(uint64_t id) {
 	} return false;
 }
 
-vertex * get_vertex(uint64_t id){
+vertex * ret_vertex(uint64_t id){
 	if (!vertex_exists(id)){
 		return NULL;
 	}
@@ -75,10 +75,11 @@ void fix_edges(vertex *out){
 	uint64_t id = out->id;
 	vertex *tmp;
 	while(head){
-		LL_delete(&((get_vertex(head->b))->head), id);
+		LL_delete(&((ret_vertex(head->b))->head), id);
 		head=head->next;
 	}
 }
+
 
 // Helper, returns false if vertex does not exist
 // TODO: delete all edges adjacent to vertex
@@ -120,6 +121,28 @@ bool remove_vertex(uint64_t id) {
 		return true;
 	} else return false;
 }
+
+// Check if a vertex is in a graph. 
+bool get_node(uint64_t id){
+	if (ret_vertex(id) == NULL){
+		return false;
+	}
+	return true;
+}
+
+// Check if an edge is in a graph 
+bool get_edge(uint64_t a, uint64_t b){
+	vertex *v1 = ret_vertex(a);
+	vertex *v2 = ret_vertex(b);
+	if (LL_contains(&(v1->head), b) && LL_contains(&(v2->head), a)){
+		return true;
+	}
+	return false;
+}
+
+
+// get array of neighbors
+
 
 // For testing, print all nodes
 void all_nodes() {
@@ -254,7 +277,7 @@ int shortest_path(uint64_t id1, uint64_t id2){
 	
 	queue *resetqueue = queueCreate();
 	queue *bfsQ = queueCreate();
-	vertex *root=get_vertex(id1);
+	vertex *root=ret_vertex(id1);
 
 	root->path=0;
 	
@@ -267,11 +290,11 @@ int shortest_path(uint64_t id1, uint64_t id2){
 	enqueue(&resetqueue, root->id);
 	int shortest_path = -1;
 	while (bfsQ->head != 0){
-		current=get_vertex(dequeue(&bfsQ));
+		current=ret_vertex(dequeue(&bfsQ));
 		for (runner = current->head; 
 			runner != NULL; 
 			runner = runner->next){
-			n=get_vertex(runner->b);
+			n=ret_vertex(runner->b);
 			if (n->path == -1){
 				n->path = current->path + 1;
 				enqueue(&resetqueue, n->id);
@@ -279,10 +302,10 @@ int shortest_path(uint64_t id1, uint64_t id2){
 			}
 		}
 	}
-	shortest_path=(get_vertex(id2))->path;
+	shortest_path=(ret_vertex(id2))->path;
 	vertex *reset;
 	while(resetqueue->head !=0){
-		reset = get_vertex(dequeue(&resetqueue));
+		reset = ret_vertex(dequeue(&resetqueue));
 		reset->path = -1;
 	}
 	queue_destroy(&resetqueue);
@@ -290,6 +313,28 @@ int shortest_path(uint64_t id1, uint64_t id2){
 	return shortest_path;
 
 }
+
+uint64_t *get_neighbors(uint64_t id){
+	vertex *v = ret_vertex(id);
+	int size = 0;
+	int i;
+	
+	edge *runner;
+	runner = v->head;
+	while(runner){
+		size++;
+		runner = runner->next;
+	}	
+
+	uint64_t *neighbors = malloc(sizeof(uint64_t)*size);
+
+	runner = v->head;
+	for (i=0; i<size; i++){
+		neighbors[i] = runner->b;
+		runner =runner->next;
+	}
+	return neighbors;
+} 
 
 
 queue * queueCreate(void){

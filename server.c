@@ -28,7 +28,8 @@ int argument_pos(struct json_token* tokens, const char* key) {
   return i;
 }
 
-char* make_json_one(const char* key, int key_length, int value, int num_args) {
+char* make_json_one(const char* key, int key_length, int value
+  ) {
   int response_length = 2 + 2 + key_length + 1 + 1 + 1;
   char* response = malloc(sizeof(char) * response_length);
   sprintf(response, "{\"%s\":%d}",key,value);
@@ -169,39 +170,78 @@ static void ev_handler(struct mg_connection *c, int ev, void *p) {
     } 
     else if(!strncmp(hm->uri.p, "/api/v1/get_node", hm->uri.len)) 
     {
+     
+      const char* arg1 = "node_id\0";
+
+      struct json_token* find = find_json_token(tokens, arg1);
+
+      // body does not contain expected key
+      if(find == 0) {
+        badRequest(c);
+        return;
+      }
+      // index of value
+      int index1 = argument_pos(tokens, arg1);
+      long long arg1_int = strtoll(tokens[index1 + 1].ptr, &endptr, 10);
+
+      bool in_graph = get_node(arg1_int);
+      //TODO: format field to respond with bool in_graph
       // respond with a boolean JSON field in_graph indicating whether the node is in the graph
-      respond(c, "200 OK", hm->uri.len, hm->uri.p);
+      respond(c, "200 OK", 0, "");
     } 
     else if(!strncmp(hm->uri.p, "/api/v1/get_edge", hm->uri.len)) 
     {
-      // //todo: should we be testing that the field is the right length?
-      // if(strncmp(tokens[1].ptr, "node_a_id", tokens[1].len) || 
-      // strncmp(tokens[3].ptr, "node_b_id", tokens[3].len)) badRequest(c);
-      // uint64_t id1 = atoi(tokens[2].ptr);
-      //   uint64_t id2 = atoi(tokens[2].ptr);
+      const char* arg1 = "node_a_id\0";
+      const char* arg2 = "node_b_id\0";
 
-      // // // if either node does not exist
-      // if(!vertex_exists() || !vertex_exists()) 
-      // {
-      //   respond(c, "400 Bad Request", 0, "");
-      // }
-      // else 
-      // {
-      //   // respond with a boolean JSON field in_graph indicating whether the edge is in the graph
-      //   respond(c, "200 OK", hm->uri.len, hm->uri.p);
-      // }
+      struct json_token* find1 = find_json_token(tokens, arg1);
+      struct json_token* find2 = find_json_token(tokens, arg2);
+
+      // body does not contain expected key
+      if(find1 == 0 || find2 == 0) {
+        badRequest(c);
+        return;
+      }
+
+      // index of value
+      int index1 = argument_pos(tokens, arg1);
+      int index2 = argument_pos(tokens, arg2);
+      long long arg1_int = strtoll(tokens[index1 + 1].ptr, &endptr, 10);
+      long long arg2_int = strtoll(tokens[index2 + 1].ptr, &endptr, 10);
+      if (!get_node(arg1_int) || !get_node(arg2_int)){
+        respond(c, "400 Bad Request", 0, "");
+      }
+      else{
+      bool in_graph = get_edge(arg1_int, arg2_int);
+        respond(c, "200 OK", 0, "");
+        //TODO: add in json field 
+      }
     } 
     else if(!strncmp(hm->uri.p, "/api/v1/get_neighbors", hm->uri.len)) 
     {
-      // // if node does not exist
-      // if(!vertex_exists()) 
-      // {
-      //   respond(c, "400 Bad Request", 0, "");
-      // }
-      // else {
-      //   // responds with a list on neighbors
-      //   respond(c, "200 OK", hm->uri.len, hm->uri.p);
-      // }
+      const char* arg1 = "node_id\0";
+ 
+      struct json_token* find1 = find_json_token(tokens, arg1);
+
+      // body does not contain expected key
+      if(find1 == 0) {
+        badRequest(c);
+        return;
+      }
+
+      // index of value
+      int index1 = argument_pos(tokens, arg1);
+      long long arg1_int = strtoll(tokens[index1 + 1].ptr, &endptr, 10);
+      if (!get_node(arg1_int) ){
+        respond(c, "400 Bad Request", 0, "");
+      }
+      else {
+        uint64_t *neighbors = get_neighbors(arg1_int);
+        respond(c, "200 OK", hm->uri.len, hm->uri.p);
+        //todo: ad in neighbors response field
+
+      }
+  
     } 
     else if(!strncmp(hm->uri.p, "/api/v1/shortest_path", hm->uri.len)) 
     {
@@ -233,8 +273,12 @@ static void ev_handler(struct mg_connection *c, int ev, void *p) {
           respond(c, "204 No Content", 0, "");
         }
         else {
+        char* response = make_json_one("distance", 8, path);
         // responds with a field distance containing the shortest path
-          respond(c, "200 OK", hm->uri.len, hm->uri.p);
+        // TODO: add in path to respond with , make sure its right
+          respond(c, "200 OK", strlen(response), response);
+          free(response);
+
         }
       }
     } 
