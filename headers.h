@@ -46,9 +46,7 @@ typedef struct vertex_map {
 int hash_vertex(uint64_t id);
 // return true if vertices the same 
 bool same_vertex(uint64_t a, uint64_t b);
-// return true if vertex exists
-bool vertex_exists(uint64_t id);
-// retrieve a vertex
+// returns pointer to vertex, or NULL if it doesn't exist
 vertex * ret_vertex(uint64_t id);
 // adds vertex, returns false is vertex existed
 bool add_vertex(uint64_t id);

@@ -18,37 +18,20 @@ int hash_vertex(uint64_t id) {
 	return id % SIZE;
 }
 
-// Returns true if vertex exists
-bool vertex_exists(uint64_t id) {
+// Returns pointer to vertex id, or NULL if it doesn't exist
+vertex *ret_vertex(uint64_t id) {
 	int hash = hash_vertex(id);
 	vertex** table = map.table;
 	vertex* index = table[hash];
 
-	if(index != NULL) {
-		if(index->id == id) return true;
-		while(index->next) {
-		    if(index->id == id) return true;
-		    index = index->next;
-		}
-	} return false;
-}
-
-vertex * ret_vertex(uint64_t id){
-	if (!vertex_exists(id)){
-		return NULL;
-	}
-	int hash = hash_vertex(id);
-	vertex** table = map.table;
-	vertex* index = table[hash];
 	if(index != NULL) {
 		if(index->id == id) return index;
 		while(index->next) {
-			if(index->id== id) return index;
+			if(index->id == id) return index;
 			index = index->next;
 		}
 	}
 	return NULL;
-	//the above situation should never be returned
 }
 
 // Adds vertex, returns false is vertex existed
@@ -56,7 +39,7 @@ bool add_vertex(uint64_t id) {
 	int hash = hash_vertex(id);
 	vertex** table = map.table;
 
-	if(vertex_exists(id)) return false;
+	if(ret_vertex(id)) return false;
 
 	vertex* new = malloc(sizeof(vertex));
 	if(!new) exit(1); // TODO: free everything
@@ -142,21 +125,6 @@ bool get_edge(uint64_t a, uint64_t b){
 
 
 // get array of neighbors
-
-
-// For testing, print all nodes
-void all_nodes() {
-	vertex** table = map.table;
-
-	for(int i=0; i<SIZE; i++) {
-		vertex* ptr = table[i];
-		while(ptr) {
-			printf("At index %d, value (%llu)\n", i, table[i]->id);
-			ptr = ptr->next;
-		}
-	}
-}
-
 
 /*
 	Linked-list API
@@ -294,7 +262,7 @@ int shortest_path(uint64_t id1, uint64_t id2){
 		for (runner = current->head; 
 			runner != NULL; 
 			runner = runner->next){
-			n=ret_vertex(runner->b);
+			n = ret_vertex(runner->b);
 			if (n->path == -1){
 				n->path = current->path + 1;
 				enqueue(&resetqueue, n->id);
