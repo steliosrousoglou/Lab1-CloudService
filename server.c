@@ -8,8 +8,6 @@ extern vertex_map map;
 
 // // returns true if edge exists
 // bool edge_exists();
-// // returns length of shortest path, or -1 if does not exist
-// int shortest_path();
 
 // Responds to given connection with code and length bytes of body
 static void respond(struct mg_connection *c, const char* code, const int length, const char* body) {
@@ -19,8 +17,15 @@ static void respond(struct mg_connection *c, const char* code, const int length,
 }
 
 // Kill program
-void DIE(struct mg_connection *c) {
+void badRequest(struct mg_connection *c) {
   respond(c, "400 Bad Request", 0, "");
+}
+
+int argument_pos(struct json_token* tokens, const char* key) {
+  struct json_token* ptr = tokens;
+  int i = 0;
+  while(strncmp(ptr[i].ptr, key, ptr[i].len)) i++;
+  return i;
 }
 
 // Event handler for request
@@ -28,17 +33,35 @@ static void ev_handler(struct mg_connection *c, int ev, void *p) {
   if (ev == MG_EV_HTTP_REQUEST) {
     struct http_message *hm = (struct http_message *) p;
     struct json_token* tokens = parse_json2(hm->body.p, hm->body.len);
+    char* endptr;
 
     // Sanity check, all valid endpoints have length at least 16
     if(hm->uri.len < 16) return;
 
+    // Sanity check for body not empty
+      if(tokens == NULL) {
+        badRequest(c);
+        return;
+      }
+
     if(!strncmp(hm->uri.p, "/api/v1/add_node", hm->uri.len)) 
     { 
-      // sanity check of input body
-      if(strncmp(tokens[1].ptr, "node_id", tokens[1].len)) DIE(c);
+      const char* arg1 = "node_id\0";
+
+      struct json_token* find = find_json_token(tokens, arg1);
+
+      // body does not contain expected key
+      if(find == 0) {
+        badRequest(c);
+        return;
+      }
+
+      // index of value
+      int index1 = argument_pos(tokens, arg1);
+      long long arg1_int = strtoll(tokens[index1 + 1].ptr, &endptr, 10);
 
       // returns true if successfully added
-      if(add_vertex(atoi(tokens[2].ptr))) 
+      if(add_vertex(arg1_int))
       {
         // TODO: respond with json object
         respond(c, "200 OK", hm->body.len, hm->body.p);
@@ -51,10 +74,26 @@ static void ev_handler(struct mg_connection *c, int ev, void *p) {
     } 
     else if(!strncmp(hm->uri.p, "/api/v1/add_edge", hm->uri.len)) 
     {
-      // sanity check of input body
-      if(strncmp(tokens[1].ptr, "node_a_id", tokens[1].len) || strncmp(tokens[3].ptr, "node_b_id", tokens[3].len)) DIE(c);
+      const char* arg1 = "node_a_id\0";
+      const char* arg2 = "node_b_id\0";
+
+      struct json_token* find1 = find_json_token(tokens, arg1);
+      struct json_token* find2 = find_json_token(tokens, arg2);
+
+      // body does not contain expected key
+      if(find1 == 0 || find2 == 0) {
+        badRequest(c);
+        return;
+      }
+
+      // index of value
+      int index1 = argument_pos(tokens, arg1);
+      int index2 = argument_pos(tokens, arg2);
+      long long arg1_int = strtoll(tokens[index1 + 1].ptr, &endptr, 10);
+      long long arg2_int = strtoll(tokens[index2 + 1].ptr, &endptr, 10);
+
       // fix incase of things fucking up
-      switch (add_edge(atoi(tokens[2].ptr), atoi(tokens[4].ptr))) {
+      switch (add_edge(arg1_int, arg2_int)) {
         case 400:
           respond(c, "400 Bad Request", 0, "");
         case 204:
@@ -65,11 +104,22 @@ static void ev_handler(struct mg_connection *c, int ev, void *p) {
     } 
     else if(!strncmp(hm->uri.p, "/api/v1/remove_node", hm->uri.len)) 
     { 
-       // sanity check of input body
-      if(strncmp(tokens[1].ptr, "node_id", tokens[1].len)) DIE(c);
+      const char* arg1 = "node_id\0";
+
+      struct json_token* find = find_json_token(tokens, arg1);
+
+      // body does not contain expected key
+      if(find == 0) {
+        badRequest(c);
+        return;
+      }
+
+      // index of value
+      int index1 = argument_pos(tokens, arg1);
+      long long arg1_int = strtoll(tokens[index1 + 1].ptr, &endptr, 10);
 
       // if node does not exist
-      if(remove_vertex(atoi(tokens[2].ptr))) 
+      if(remove_vertex(arg1_int))
       {
         respond(c, "200 OK", tokens[2].len, tokens[2].ptr);
       } 
@@ -80,18 +130,32 @@ static void ev_handler(struct mg_connection *c, int ev, void *p) {
     } 
     else if(!strncmp(hm->uri.p, "/api/v1/remove_edge", hm->uri.len)) 
     {
-      // sanity check of input body
-      if(strncmp(tokens[1].ptr, "node_a_id", tokens[1].len) || strncmp(tokens[3].ptr, "node_b_id", tokens[3].len)) DIE(c);
+      const char* arg1 = "node_a_id\0";
+      const char* arg2 = "node_b_id\0";
+
+      struct json_token* find1 = find_json_token(tokens, arg1);
+      struct json_token* find2 = find_json_token(tokens, arg2);
+
+      // body does not contain expected key
+      if(find1 == 0 || find2 == 0) {
+        badRequest(c);
+        return;
+      }
+
+      // index of value
+      int index1 = argument_pos(tokens, arg1);
+      int index2 = argument_pos(tokens, arg2);
+      long long arg1_int = strtoll(tokens[index1 + 1].ptr, &endptr, 10);
+      long long arg2_int = strtoll(tokens[index2 + 1].ptr, &endptr, 10);
 
       // if edge does not exist
-      if(remove_edge(atoi(tokens[2].ptr), atoi(tokens[4].ptr))) 
+      if(!remove_edge(arg1_int, arg2_int))
       {
-          respond(c, "200 OK", hm->body.len, hm->body.p);
-          respond(c, "400 Bad Request", 0, "");
+          respond(c, "200 OK", hm->uri.len, hm->uri.p);
       } 
       else 
       {
-        respond(c, "200 OK", hm->uri.len, hm->uri.p);
+          respond(c, "400 Bad Request", 0, "");
       }
     } 
     else if(!strncmp(hm->uri.p, "/api/v1/get_node", hm->uri.len)) 
@@ -103,7 +167,7 @@ static void ev_handler(struct mg_connection *c, int ev, void *p) {
     {
       // //todo: should we be testing that the field is the right length?
       // if(strncmp(tokens[1].ptr, "node_a_id", tokens[1].len) || 
-      // strncmp(tokens[3].ptr, "node_b_id", tokens[3].len)) DIE(c);
+      // strncmp(tokens[3].ptr, "node_b_id", tokens[3].len)) badRequest(c);
       // uint64_t id1 = atoi(tokens[2].ptr);
       //   uint64_t id2 = atoi(tokens[2].ptr);
 
@@ -132,17 +196,31 @@ static void ev_handler(struct mg_connection *c, int ev, void *p) {
     } 
     else if(!strncmp(hm->uri.p, "/api/v1/shortest_path", hm->uri.len)) 
     {
-      if(strncmp(tokens[1].ptr, "node_a_id", tokens[1].len) || 
-        strncmp(tokens[3].ptr, "node_b_id", tokens[3].len)) DIE(c);
-        uint64_t id1 = atoi(tokens[2].ptr);
-        uint64_t id2 = atoi(tokens[4].ptr);
+      const char* arg1 = "node_a_id\0";
+      const char* arg2 = "node_b_id\0";
+
+      struct json_token* find1 = find_json_token(tokens, arg1);
+      struct json_token* find2 = find_json_token(tokens, arg2);
+
+      // body does not contain expected key
+      if(find1 == 0 || find2 == 0) {
+        badRequest(c);
+        return;
+      }
+
+      // index of value
+      int index1 = argument_pos(tokens, arg1);
+      int index2 = argument_pos(tokens, arg2);
+      long long arg1_int = strtoll(tokens[index1 + 1].ptr, &endptr, 10);
+      long long arg2_int = strtoll(tokens[index2 + 1].ptr, &endptr, 10);
+
       // if either node does not exist
-      if(!vertex_exists(id1) || !vertex_exists(id2)) {
+      if(!vertex_exists(arg1_int) || !vertex_exists(arg2_int)) {
         respond(c, "400 Bad Request", 0, "");
       }
       else {
-        int path = shortest_path(id1, id2);
-        if (path == -1){
+        int path = shortest_path(arg1_int, arg2_int);
+        if (path == -1) {
           respond(c, "204 No Content", 0, "");
         }
         else {
@@ -158,7 +236,7 @@ int main(int argc, char** argv) {
 
   // ensure correct number of arguments
   if(argc != 2) {
-    fprintf(stderr, "Usage: ./cs426_graph_server <port>");
+    fprintf(stderr, "Usage: ./cs426_graph_server <port>\n");
     return 1;
   }
 

@@ -59,7 +59,7 @@ bool add_vertex(uint64_t id) {
 	if(vertex_exists(id)) return false;
 
 	vertex* new = malloc(sizeof(vertex));
-	if(!new) DIE();
+	if(!new) exit(1); // TODO: free everything
 	new->id = id;
 	new->next = table[hash];
 	new->head = NULL;
