@@ -28,6 +28,13 @@ int argument_pos(struct json_token* tokens, const char* key) {
   return i;
 }
 
+char* make_json_one(const char* key, int key_length, int value, int num_args) {
+  int response_length = 2 + 2 + key_length + 1 + 1 + 1;
+  char* response = malloc(sizeof(char) * response_length);
+  sprintf(response, "{\"%s\":%d}",key,value);
+  return response;
+}
+
 // Event handler for request
 static void ev_handler(struct mg_connection *c, int ev, void *p) {
   if (ev == MG_EV_HTTP_REQUEST) {
@@ -64,7 +71,9 @@ static void ev_handler(struct mg_connection *c, int ev, void *p) {
       if(add_vertex(arg1_int))
       {
         // TODO: respond with json object
-        respond(c, "200 OK", hm->body.len, hm->body.p);
+        char* response = make_json_one("node_id", 7, arg1_int);
+        respond(c, "200 OK", strlen(response), response);
+        free(response);
       } 
       else 
       {
