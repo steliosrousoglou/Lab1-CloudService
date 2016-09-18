@@ -135,7 +135,7 @@ static void ev_handler(struct mg_connection *c, int ev, void *p) {
       if(strncmp(tokens[1].ptr, "node_a_id", tokens[1].len) || 
         strncmp(tokens[3].ptr, "node_b_id", tokens[3].len)) DIE(c);
         uint64_t id1 = atoi(tokens[2].ptr);
-        uint64_t id2 = atoi(tokens[2].ptr);
+        uint64_t id2 = atoi(tokens[4].ptr);
       // if either node does not exist
       if(!vertex_exists(id1) || !vertex_exists(id2)) {
         respond(c, "400 Bad Request", 0, "");
