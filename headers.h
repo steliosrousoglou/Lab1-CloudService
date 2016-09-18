@@ -49,13 +49,21 @@ bool same_vertex(uint64_t a, uint64_t b);
 // return true if vertex exists
 bool vertex_exists(uint64_t id);
 // retrieve a vertex
-vertex * get_vertex(uint64_t id);
+vertex * ret_vertex(uint64_t id);
 // adds vertex, returns false is vertex existed
 bool add_vertex(uint64_t id);
 // helper, returns false if vertex does not exist
 bool delete_vertex(vertex** head, uint64_t id);
 // removes vertex, returns false is vertex does not exist
 bool remove_vertex(uint64_t id);
+// checks if a vertex is in a graph
+bool get_node(uint64_t id);
+// checks if an edge is in a graph
+bool get_edge(uint64_t a, uint64_t b);
+// find size of neighbors 
+int neighbors_size(uint64_t id);
+// get array of neighbors
+uint64_t *get_neighbors(uint64_t id); 
 // finds shortest path between two nodes
 int shortest_path(uint64_t id1, uint64_t id2);
 // For testing, print all nodes
