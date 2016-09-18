@@ -1,4 +1,8 @@
 server
 .DS_Store
 server.dSYM/
+cs426_graph_server
+hashtable.o
+mongoose.o
+server.o
 struct_message
