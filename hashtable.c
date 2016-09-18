@@ -52,7 +52,7 @@ bool add_vertex(uint64_t id) {
 	return true;
 }
 
-//helper code 
+// helper code 
 void fix_edges(vertex *out){
 	edge *head = out->head;
 	uint64_t id = out->id;
@@ -282,7 +282,7 @@ int shortest_path(uint64_t id1, uint64_t id2){
 
 }
 
-uint64_t *get_neighbors(uint64_t id){
+uint64_t *get_neighbors(uint64_t id, int* n){
 	vertex *v = ret_vertex(id);
 	int size = 0;
 	int i;
@@ -301,6 +301,7 @@ uint64_t *get_neighbors(uint64_t id){
 		neighbors[i] = runner->b;
 		runner =runner->next;
 	}
+	*n = size;
 	return neighbors;
 } 
 

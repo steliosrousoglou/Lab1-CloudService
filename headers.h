@@ -58,10 +58,8 @@ bool remove_vertex(uint64_t id);
 bool get_node(uint64_t id);
 // checks if an edge is in a graph
 bool get_edge(uint64_t a, uint64_t b);
-// find size of neighbors 
-int neighbors_size(uint64_t id);
 // get array of neighbors
-uint64_t *get_neighbors(uint64_t id); 
+uint64_t *get_neighbors(uint64_t id, int* n); 
 // finds shortest path between two nodes
 int shortest_path(uint64_t id1, uint64_t id2);
 // For testing, print all nodes

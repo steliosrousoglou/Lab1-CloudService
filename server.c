@@ -38,11 +38,43 @@ char* make_json_one(const char* key, int key_length, int value) {
   return response;
 }
 
+// Returns allocated string in json format, with two arguments
 char* make_json_two(const char* key1, const char* key2, int key1_length, int key2_length, int value1, int value2) {
   // {} + "" + length of key1 + : + value + , + "" + length of key2 + : + value + \0
   int response_length = 2 + 2 + key1_length + 5 + key2_length + 3;
   char* response = malloc(sizeof(char) * response_length);
   sprintf(response, "{\"%s\":%d,\"%s\":%d}", key1, value1, key2, value2);
+  return response;
+}
+
+char* format_neighbors(uint64_t* neighbors, int size) {
+  char* response = malloc(sizeof(char));
+  int response_length = 1;
+  response[0] = '[';
+  char dummy[20];
+  int dummy_length;
+
+  for(int i = 0; i < size; i++) {
+    if (i<size-1) sprintf(dummy, "%llu,", neighbors[i]);
+    else sprintf(dummy, "%llu", neighbors[i]);
+
+    dummy_length = strlen(dummy);
+    response_length += dummy_length;
+    response = realloc(response, sizeof(char)*response_length);
+    memcpy(response + response_length - dummy_length, dummy, dummy_length);
+  }
+  response_length += 2;
+  response = realloc(response, sizeof(char)*response_length);
+  response[response_length-2] = ']';
+  response[response_length-1] = '\0';
+  return response;
+}
+
+// Returns allocated string in json format, formatted for get_neighbors
+char* make_neighbor_response(const char* key1, const char* key2, int key1_length, int key2_length, int value1, char* neighbors) {
+  int response_length = 10 + key1_length + 1 + strlen(neighbors);
+  char* response = malloc(sizeof(char) * response_length);
+  sprintf(response, "{\"%s\":%d,\"%s\":%s}", key1, value1, key2, neighbors);
   return response;
 }
 
@@ -52,6 +84,7 @@ static void ev_handler(struct mg_connection *c, int ev, void *p) {
     struct http_message *hm = (struct http_message *) p;
     struct json_token* tokens = parse_json2(hm->body.p, hm->body.len);
     char* endptr;
+    char* response;
 
     // Sanity check, all valid endpoints have length at least 16
     if(hm->uri.len < 16) return;
@@ -81,7 +114,7 @@ static void ev_handler(struct mg_connection *c, int ev, void *p) {
       // returns true if successfully added
       if(add_vertex(arg1_int))
       {
-        char* response = make_json_one("node_id", 7, arg1_int);
+        response = make_json_one("node_id", 7, arg1_int);
         respond(c, "200 OK", strlen(response), response);
         free(response);
       } 
@@ -114,13 +147,13 @@ static void ev_handler(struct mg_connection *c, int ev, void *p) {
       // fix incase of things fucking up
       switch (add_edge(arg1_int, arg2_int)) {
         case 400:
-        respond(c, "400 Bad Request", 0, "");
+          respond(c, "400 Bad Request", 0, "");
         case 204:
-        respond(c, "204 No Content", 0, "");
+          respond(c, "204 No Content", 0, "");
         case 200:
-        char* response = make_json_two("node_a_id", "node_b_id", 9, 9, arg1_int, arg2_int);
-        respond(c, "200 OK", strlen(response), response);
-        free(response);
+          response = make_json_two("node_a_id", "node_b_id", 9, 9, arg1_int, arg2_int);
+          respond(c, "200 OK", strlen(response), response);
+          free(response);
       }
     } 
     else if(!strncmp(hm->uri.p, "/api/v1/remove_node", hm->uri.len)) 
@@ -142,7 +175,7 @@ static void ev_handler(struct mg_connection *c, int ev, void *p) {
       // if node does not exist
       if(remove_vertex(arg1_int))
       {
-        char* response = make_json_one("node_id", 7, arg1_int);
+        response = make_json_one("node_id", 7, arg1_int);
         respond(c, "200 OK", strlen(response), response);
         free(response);
       } 
@@ -172,9 +205,11 @@ static void ev_handler(struct mg_connection *c, int ev, void *p) {
       long long arg2_int = strtoll(tokens[index2 + 1].ptr, &endptr, 10);
 
       // if edge does not exist
-      if(!remove_edge(arg1_int, arg2_int))
+      if(remove_edge(arg1_int, arg2_int))
       {
-        respond(c, "200 OK", hm->uri.len, hm->uri.p);
+          response = make_json_two("node_a_id", "node_b_id", 9, 9, arg1_int, arg2_int);
+          respond(c, "200 OK", strlen(response), response);
+          free(response);;
       } 
       else 
       {
@@ -183,7 +218,6 @@ static void ev_handler(struct mg_connection *c, int ev, void *p) {
     } 
     else if(!strncmp(hm->uri.p, "/api/v1/get_node", hm->uri.len)) 
     {
-
       const char* arg1 = "node_id\0";
 
       struct json_token* find = find_json_token(tokens, arg1);
@@ -198,9 +232,9 @@ static void ev_handler(struct mg_connection *c, int ev, void *p) {
       long long arg1_int = strtoll(tokens[index1 + 1].ptr, &endptr, 10);
 
       bool in_graph = get_node(arg1_int);
-      //TODO: format field to respond with bool in_graph
-      // respond with a boolean JSON field in_graph indicating whether the node is in the graph
-      respond(c, "200 OK", 0, "");
+      response = make_json_one("in_graph", 8, in_graph);
+      respond(c, "200 OK", strlen(response), response);
+      free(response);    
     } 
     else if(!strncmp(hm->uri.p, "/api/v1/get_edge", hm->uri.len)) 
     {
@@ -221,13 +255,15 @@ static void ev_handler(struct mg_connection *c, int ev, void *p) {
       int index2 = argument_pos(tokens, arg2);
       long long arg1_int = strtoll(tokens[index1 + 1].ptr, &endptr, 10);
       long long arg2_int = strtoll(tokens[index2 + 1].ptr, &endptr, 10);
+
       if (!get_node(arg1_int) || !get_node(arg2_int)){
         respond(c, "400 Bad Request", 0, "");
       }
-      else{
+      else {
         bool in_graph = get_edge(arg1_int, arg2_int);
-        respond(c, "200 OK", 0, "");
-        //TODO: add in json field 
+        response = make_json_one("in_graph", 8, in_graph);
+        respond(c, "200 OK", strlen(response), response);
+        free(response);    
       }
     } 
     else if(!strncmp(hm->uri.p, "/api/v1/get_neighbors", hm->uri.len)) 
@@ -249,10 +285,12 @@ static void ev_handler(struct mg_connection *c, int ev, void *p) {
       if (!get_node(arg1_int) ) {
         respond(c, "400 Bad Request", 0, "");
       } else {
-        uint64_t *neighbors = get_neighbors(arg1_int);
-        respond(c, "200 OK", hm->uri.len, hm->uri.p);
-        //todo: ad in neighbors response field
-
+        int size;
+        uint64_t *neighbors = get_neighbors(arg1_int, &size);
+        char* neighbor_array = format_neighbors(neighbors, size);
+        response = make_neighbor_response("node_id", "neighbors", 7, 9, arg1_int, neighbor_array);
+        respond(c, "200 OK", strlen(response), response);
+        free(response);
       }
 
     } 
@@ -284,7 +322,7 @@ static void ev_handler(struct mg_connection *c, int ev, void *p) {
         if (path == -1) {
           respond(c, "204 No Content", 0, "");
         } else {
-          char* response = make_json_one("distance", 8, path);
+          response = make_json_one("distance", 8, path);
           respond(c, "200 OK", strlen(response), response);
           free(response);
         }
