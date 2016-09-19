@@ -343,7 +343,7 @@ uint64_t dequeue(queue **q){
 }
 
 void queue_destroy(queue **q){
-	while(!(*q)->head == 0){
+	while(!((*q)->head == 0)){
 		dequeue(q);
 
 	}
