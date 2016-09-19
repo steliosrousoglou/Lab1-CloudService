@@ -1,3 +1,13 @@
+/*
+ * server.c 
+ *  
+ * by Stylianos Rousoglou
+ * and Alex Saiontz
+ *
+ * Provides the server functionality, including 
+ * main, the request handler, and formatting json responses
+ */
+
 #include <string.h>
 #include <stdbool.h>
 
@@ -279,7 +289,7 @@ static void ev_handler(struct mg_connection *c, int ev, void *p) {
       long long arg1_int = strtoll(tokens[index1 + 1].ptr, &endptr, 10);
 
       if (!get_node(arg1_int) ) {
-        respond(c, "900 Bad Request", 0, "");
+        respond(c, "400 Bad Request", 0, "");
       } else {
         int size;
         uint64_t *neighbors = get_neighbors(arg1_int, &size);

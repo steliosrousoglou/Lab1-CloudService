@@ -1,3 +1,13 @@
+/*
+ * headers.h
+ *  
+ * by Stylianos Rousoglou
+ * and Alex Saiontz
+ *
+ * Provides function prototypes
+ * and structure definitions
+ */
+
 // size of hashtable
 #define SIZE (100000)
 
@@ -40,8 +50,6 @@ typedef struct vertex_map {
 	size_t size;
 } vertex_map;
 
-
-
 // Returns hash value
 int hash_vertex(uint64_t id);
 // return true if vertices the same 
@@ -66,7 +74,7 @@ int shortest_path(uint64_t id1, uint64_t id2);
 void all_nodes();
 
 /*
-	Linked-list (edges) API prototypes
+	Linked-list API prototypes
 */
 
 // Inserts node in given LL
@@ -80,9 +88,13 @@ int add_edge(uint64_t a, uint64_t b);
 // Removes edge, returns false if it didn't exist
 bool remove_edge(uint64_t a, uint64_t b);
 
-/* Methods for Queue used for BFS */
+/* Queue prototypes */
 
+// Initializes queue
 queue * queueCreate(void);
+// Enqueues element value to queue *q
 void enqueue(queue **q, uint64_t value);
+// Dequeues element value from queue *q
 uint64_t dequeue(queue **q);
+// Empties queue and frees allocated memory
 void queue_destroy(queue **q);

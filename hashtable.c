@@ -1,3 +1,14 @@
+/*
+ * hashtable.c 
+ *  
+ * by Stylianos Rousoglou
+ * and Alex Saiontz
+ *
+ * Provides hashtable, linked list, and
+ * queue functionality, as well as a 
+ * shortest path alogirthm
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -123,9 +134,6 @@ bool get_edge(uint64_t a, uint64_t b){
 	return false;
 }
 
-
-// get array of neighbors
-
 /*
 	Linked-list API
 */
@@ -237,10 +245,65 @@ bool remove_edge(uint64_t a, uint64_t b) {
 
 	return (LL_delete(&(v1->head), b) && LL_delete(&(v2->head), a));
 }
-// assumes both nodes exist; check if they dont in the other thing;
-// TODO: figure out if assingning a parent the value of -1 is a problem
-// because of the uint_64 thing, and generally if the int/uint_64 
-// thing is a problem 
+
+/*
+	Queue API
+*/
+
+// Initializes queue
+queue * queueCreate(void){
+	queue *q;
+	q = malloc(sizeof(queue));
+	q->head = q->tail = 0;
+	return q;
+
+}
+
+// Enqueues element value to queue *q
+void enqueue(queue **q, uint64_t value){
+	struct elt *e;
+	e = malloc(sizeof(struct elt));
+	assert(e);
+	e->value = value;
+	e->next = 0;
+	if((*q)->head == 0) {
+		(*q)->head = e;
+	}
+	else {
+		(*q)->tail->next = e;
+	}
+	(*q)->tail = e;
+}
+
+// Dequeues element value from queue *q
+uint64_t dequeue(queue **q){
+	uint64_t ret;
+	struct elt *e;
+	assert(!((*q)->head == 0));
+
+	ret= (*q)->head->value;
+
+	e = (*q)->head;
+	(*q)->head = e->next;
+	free(e);
+	return ret;
+
+}
+
+// Empties queue and frees allocated memory
+void queue_destroy(queue **q){
+	while(!((*q)->head == 0)){
+		dequeue(q);
+
+	}
+	free(*q);
+}
+
+/*
+	Other operations
+*/
+
+// Assumes both nodes exist; returns value of shortest path
 int shortest_path(uint64_t id1, uint64_t id2){
 	
 	queue *resetqueue = queueCreate();
@@ -252,7 +315,6 @@ int shortest_path(uint64_t id1, uint64_t id2){
 	vertex *current;
 	vertex *n;
 	edge *runner;
-
 
 	enqueue(&bfsQ, root->id);
 	enqueue(&resetqueue, root->id);
@@ -303,49 +365,4 @@ uint64_t *get_neighbors(uint64_t id, int* n){
 	}
 	*n = size;
 	return neighbors;
-} 
-
-
-queue * queueCreate(void){
-	queue *q;
-	q = malloc(sizeof(queue));
-	q->head = q->tail = 0;
-	return q;
-
-}
-
-void enqueue(queue **q, uint64_t value){
-	struct elt *e;
-	e = malloc(sizeof(struct elt));
-	assert(e);
-	e->value = value;
-	e->next = 0;
-	if((*q)->head == 0) {
-		(*q)->head = e;
-	}
-	else {
-		(*q)->tail->next = e;
-	}
-	(*q)->tail = e;
-}
-uint64_t dequeue(queue **q){
-	uint64_t ret;
-	struct elt *e;
-	assert(!((*q)->head == 0));
-
-	ret= (*q)->head->value;
-
-	e = (*q)->head;
-	(*q)->head = e->next;
-	free(e);
-	return ret;
-
-}
-
-void queue_destroy(queue **q){
-	while(!((*q)->head == 0)){
-		dequeue(q);
-
-	}
-	free(*q);
 }
