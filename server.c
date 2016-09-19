@@ -83,7 +83,11 @@ char* format_neighbors(uint64_t* neighbors, int size) {
 
 // Returns allocated string in json format, formatted for get_neighbors
 char* make_neighbor_response(const char* key1, const char* key2, int key1_length, int key2_length, int value1, char* neighbors) {
-  int response_length = 10 + key1_length + 1 + strlen(neighbors) + 2;
+  char dummy[20];
+  sprintf(dummy, "%d", value1);
+  int value1_length = strlen(dummy);
+
+  int response_length = 9 + key1_length + value1_length + key2_length + strlen(neighbors) + 1;
   char* response = malloc(sizeof(char) * response_length);
   sprintf(response, "{\"%s\":%d,\"%s\":%s}", key1, value1, key2, neighbors);
   return response;
@@ -108,7 +112,7 @@ static void ev_handler(struct mg_connection *c, int ev, void *p) {
 
     if(!strncmp(hm->uri.p, "/api/v1/add_node", hm->uri.len)) 
     { 
-      const char* arg1 = "node_id\0";
+      const char* arg1 = "node_id";
 
       struct json_token* find = find_json_token(tokens, arg1);
 
@@ -137,8 +141,8 @@ static void ev_handler(struct mg_connection *c, int ev, void *p) {
     } 
     else if(!strncmp(hm->uri.p, "/api/v1/add_edge", hm->uri.len)) 
     {
-      const char* arg1 = "node_a_id\0";
-      const char* arg2 = "node_b_id\0";
+      const char* arg1 = "node_a_id";
+      const char* arg2 = "node_b_id";
 
       struct json_token* find1 = find_json_token(tokens, arg1);
       struct json_token* find2 = find_json_token(tokens, arg2);
@@ -169,7 +173,7 @@ static void ev_handler(struct mg_connection *c, int ev, void *p) {
     } 
     else if(!strncmp(hm->uri.p, "/api/v1/remove_node", hm->uri.len)) 
     { 
-      const char* arg1 = "node_id\0";
+      const char* arg1 = "node_id";
 
       struct json_token* find = find_json_token(tokens, arg1);
 
@@ -197,8 +201,8 @@ static void ev_handler(struct mg_connection *c, int ev, void *p) {
     } 
     else if(!strncmp(hm->uri.p, "/api/v1/remove_edge", hm->uri.len)) 
     {
-      const char* arg1 = "node_a_id\0";
-      const char* arg2 = "node_b_id\0";
+      const char* arg1 = "node_a_id";
+      const char* arg2 = "node_b_id";
 
       struct json_token* find1 = find_json_token(tokens, arg1);
       struct json_token* find2 = find_json_token(tokens, arg2);
@@ -229,7 +233,7 @@ static void ev_handler(struct mg_connection *c, int ev, void *p) {
     } 
     else if(!strncmp(hm->uri.p, "/api/v1/get_node", hm->uri.len)) 
     {
-      const char* arg1 = "node_id\0";
+      const char* arg1 = "node_id";
 
       struct json_token* find = find_json_token(tokens, arg1);
 
@@ -249,8 +253,8 @@ static void ev_handler(struct mg_connection *c, int ev, void *p) {
     } 
     else if(!strncmp(hm->uri.p, "/api/v1/get_edge", hm->uri.len)) 
     {
-      const char* arg1 = "node_a_id\0";
-      const char* arg2 = "node_b_id\0";
+      const char* arg1 = "node_a_id";
+      const char* arg2 = "node_b_id";
 
       struct json_token* find1 = find_json_token(tokens, arg1);
       struct json_token* find2 = find_json_token(tokens, arg2);
@@ -279,7 +283,7 @@ static void ev_handler(struct mg_connection *c, int ev, void *p) {
     } 
     else if(!strncmp(hm->uri.p, "/api/v1/get_neighbors", hm->uri.len)) 
     {
-      const char* arg1 = "node_id\0";
+      const char* arg1 = "node_id";
 
       struct json_token* find1 = find_json_token(tokens, arg1);
 
@@ -294,13 +298,13 @@ static void ev_handler(struct mg_connection *c, int ev, void *p) {
       long long arg1_int = strtoll(tokens[index1 + 1].ptr, &endptr, 10);
 
       if (!get_node(arg1_int) ) {
-        respond(c, "400 Bad Request", 0, "");
+        respond(c, "900 Bad Request", 0, "");
       } else {
         int size;
         uint64_t *neighbors = get_neighbors(arg1_int, &size);
         char* neighbor_array = format_neighbors(neighbors, size);
         response = make_neighbor_response("node_id", "neighbors", 7, 9, arg1_int, neighbor_array);
-        respond(c, "200 OK", 0,"");//strlen(response), response);
+        respond(c, "200 OK", strlen(response), response);
         free(response);
         free(neighbors);
       }
@@ -308,8 +312,8 @@ static void ev_handler(struct mg_connection *c, int ev, void *p) {
     } 
     else if(!strncmp(hm->uri.p, "/api/v1/shortest_path", hm->uri.len)) 
     {
-      const char* arg1 = "node_a_id\0";
-      const char* arg2 = "node_b_id\0";
+      const char* arg1 = "node_a_id";
+      const char* arg2 = "node_b_id";
 
       struct json_token* find1 = find_json_token(tokens, arg1);
       struct json_token* find2 = find_json_token(tokens, arg2);
