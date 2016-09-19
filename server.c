@@ -64,6 +64,7 @@ char* make_json_two(const char* key1, const char* key2, int key1_length, int key
   return response;
 }
 
+// Function that returns array formatted as a C string
 char* format_neighbors(uint64_t* neighbors, int size) {
   char* response = malloc(sizeof(char));
   int response_length = 1;
@@ -108,11 +109,8 @@ static void ev_handler(struct mg_connection *c, int ev, void *p) {
     char* endptr;
     char* response;
 
-    // Sanity check, all valid endpoints have length at least 16
-    if(hm->uri.len < 16) return;
-
-    // Sanity check for body not empty
-    if(tokens == NULL) {
+    // Sanity check for endpoint length and body not empty
+    if(hm->uri.len < 16 || tokens == NULL) {
       badRequest(c);
       return;
     }
@@ -139,7 +137,7 @@ static void ev_handler(struct mg_connection *c, int ev, void *p) {
         free(response);
       } else {
         // vertex already existed
-        respond(c, "204 OK", 0, "");
+        respond(c, "204 No Content", 0, "");
       }
     } 
     else if(!strncmp(hm->uri.p, "/api/v1/add_edge", hm->uri.len)) {
@@ -333,7 +331,7 @@ static void ev_handler(struct mg_connection *c, int ev, void *p) {
           free(response);
         }
       }
-    } 
+    }
   }
 }
 
