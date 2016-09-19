@@ -107,8 +107,7 @@ static void ev_handler(struct mg_connection *c, int ev, void *p) {
       return;
     }
 
-    if(!strncmp(hm->uri.p, "/api/v1/add_node", hm->uri.len)) 
-    { 
+    if(!strncmp(hm->uri.p, "/api/v1/add_node", hm->uri.len)) {
       const char* arg1 = "node_id";
 
       struct json_token* find = find_json_token(tokens, arg1);
@@ -124,20 +123,16 @@ static void ev_handler(struct mg_connection *c, int ev, void *p) {
       long long arg1_int = strtoll(tokens[index1 + 1].ptr, &endptr, 10);
 
       // returns true if successfully added
-      if(add_vertex(arg1_int))
-      {
+      if(add_vertex(arg1_int)) {
         response = make_json_one("node_id", 7, arg1_int);
         respond(c, "200 OK", strlen(response), response);
         free(response);
-      } 
-      else 
-      {
+      } else {
         // vertex already existed
         respond(c, "204 OK", 0, "");
       }
     } 
-    else if(!strncmp(hm->uri.p, "/api/v1/add_edge", hm->uri.len)) 
-    {
+    else if(!strncmp(hm->uri.p, "/api/v1/add_edge", hm->uri.len)) {
       const char* arg1 = "node_a_id";
       const char* arg2 = "node_b_id";
 
@@ -168,8 +163,7 @@ static void ev_handler(struct mg_connection *c, int ev, void *p) {
           free(response);
       }
     } 
-    else if(!strncmp(hm->uri.p, "/api/v1/remove_node", hm->uri.len)) 
-    { 
+    else if(!strncmp(hm->uri.p, "/api/v1/remove_node", hm->uri.len)) {
       const char* arg1 = "node_id";
 
       struct json_token* find = find_json_token(tokens, arg1);
@@ -185,19 +179,15 @@ static void ev_handler(struct mg_connection *c, int ev, void *p) {
       long long arg1_int = strtoll(tokens[index1 + 1].ptr, &endptr, 10);
 
       // if node does not exist
-      if(remove_vertex(arg1_int))
-      {
+      if(remove_vertex(arg1_int)) {
         response = make_json_one("node_id", 7, arg1_int);
         respond(c, "200 OK", strlen(response), response);
         free(response);
-      } 
-      else 
-      {
+      } else {
         respond(c, "400 Bad Request", 0, "");
       }
     } 
-    else if(!strncmp(hm->uri.p, "/api/v1/remove_edge", hm->uri.len)) 
-    {
+    else if(!strncmp(hm->uri.p, "/api/v1/remove_edge", hm->uri.len)) {
       const char* arg1 = "node_a_id";
       const char* arg2 = "node_b_id";
 
@@ -217,19 +207,15 @@ static void ev_handler(struct mg_connection *c, int ev, void *p) {
       long long arg2_int = strtoll(tokens[index2 + 1].ptr, &endptr, 10);
 
       // if edge does not exist
-      if(remove_edge(arg1_int, arg2_int))
-      {
+      if(remove_edge(arg1_int, arg2_int)) {
           response = make_json_two("node_a_id", "node_b_id", 9, 9, arg1_int, arg2_int);
           respond(c, "200 OK", strlen(response), response);
           free(response);;
-      } 
-      else 
-      {
+      } else {
         respond(c, "400 Bad Request", 0, "");
       }
     } 
-    else if(!strncmp(hm->uri.p, "/api/v1/get_node", hm->uri.len)) 
-    {
+    else if(!strncmp(hm->uri.p, "/api/v1/get_node", hm->uri.len)) {
       const char* arg1 = "node_id";
 
       struct json_token* find = find_json_token(tokens, arg1);
@@ -248,8 +234,7 @@ static void ev_handler(struct mg_connection *c, int ev, void *p) {
       respond(c, "200 OK", strlen(response), response);
       free(response);    
     } 
-    else if(!strncmp(hm->uri.p, "/api/v1/get_edge", hm->uri.len)) 
-    {
+    else if(!strncmp(hm->uri.p, "/api/v1/get_edge", hm->uri.len)) {
       const char* arg1 = "node_a_id";
       const char* arg2 = "node_b_id";
 
@@ -278,8 +263,7 @@ static void ev_handler(struct mg_connection *c, int ev, void *p) {
         free(response);    
       }
     } 
-    else if(!strncmp(hm->uri.p, "/api/v1/get_neighbors", hm->uri.len)) 
-    {
+    else if(!strncmp(hm->uri.p, "/api/v1/get_neighbors", hm->uri.len)) {
       const char* arg1 = "node_id";
 
       struct json_token* find1 = find_json_token(tokens, arg1);
@@ -307,8 +291,7 @@ static void ev_handler(struct mg_connection *c, int ev, void *p) {
       }
 
     } 
-    else if(!strncmp(hm->uri.p, "/api/v1/shortest_path", hm->uri.len)) 
-    {
+    else if(!strncmp(hm->uri.p, "/api/v1/shortest_path", hm->uri.len)) {
       const char* arg1 = "node_a_id";
       const char* arg2 = "node_b_id";
 
