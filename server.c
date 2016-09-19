@@ -6,9 +6,6 @@
 
 extern vertex_map map;
 
-// // returns true if edge exists
-// bool edge_exists();
-
 // Responds to given connection with code and length bytes of body
 static void respond(struct mg_connection *c, const char* code, const int length, const char* body) {
   mg_printf(c, "HTTP/1.1 %s\r\nContent-Length: %d\r\n"
