@@ -32,7 +32,10 @@ int argument_pos(struct json_token* tokens, const char* key) {
 // Returns allocated string in json format, with one argument
 char* make_json_one(const char* key, int key_length, int value) {
   // {} + "" + length of key + : + value + \0
-  int response_length = 2 + 2 + key_length + 3;
+  char dummy[20];
+  sprintf(dummy, "%d", value);
+  int value_length = strlen(dummy);
+  int response_length = 2 + 2 + key_length + 1 + value_length + 1;
   char* response = malloc(sizeof(char) * response_length);
   sprintf(response, "{\"%s\":%d}",key,value);
   return response;
@@ -41,7 +44,14 @@ char* make_json_one(const char* key, int key_length, int value) {
 // Returns allocated string in json format, with two arguments
 char* make_json_two(const char* key1, const char* key2, int key1_length, int key2_length, int value1, int value2) {
   // {} + "" + length of key1 + : + value + , + "" + length of key2 + : + value + \0
-  int response_length = 2 + 2 + key1_length + 5 + key2_length + 3;
+  char dummy1[20];
+  char dummy2[20];
+  sprintf(dummy1, "%d", value1);
+  sprintf(dummy2, "%d", value2);
+  int value1_length = strlen(dummy1);
+  int value2_length = strlen(dummy2);
+
+  int response_length = 2 + 2 + key1_length + value1_length + 5 + key2_length + value2_length + 1;
   char* response = malloc(sizeof(char) * response_length);
   sprintf(response, "{\"%s\":%d,\"%s\":%d}", key1, value1, key2, value2);
   return response;
@@ -60,8 +70,9 @@ char* format_neighbors(uint64_t* neighbors, int size) {
 
     dummy_length = strlen(dummy);
     response_length += dummy_length;
-    response = realloc(response, sizeof(char)*response_length);
+    response = realloc(response, sizeof(char)*(response_length + 1));
     memcpy(response + response_length - dummy_length, dummy, dummy_length);
+    response[response_length] = '\0';
   }
   response_length += 2;
   response = realloc(response, sizeof(char)*response_length);
@@ -72,7 +83,7 @@ char* format_neighbors(uint64_t* neighbors, int size) {
 
 // Returns allocated string in json format, formatted for get_neighbors
 char* make_neighbor_response(const char* key1, const char* key2, int key1_length, int key2_length, int value1, char* neighbors) {
-  int response_length = 10 + key1_length + 1 + strlen(neighbors);
+  int response_length = 10 + key1_length + 1 + strlen(neighbors) + 2;
   char* response = malloc(sizeof(char) * response_length);
   sprintf(response, "{\"%s\":%d,\"%s\":%s}", key1, value1, key2, neighbors);
   return response;
@@ -289,8 +300,9 @@ static void ev_handler(struct mg_connection *c, int ev, void *p) {
         uint64_t *neighbors = get_neighbors(arg1_int, &size);
         char* neighbor_array = format_neighbors(neighbors, size);
         response = make_neighbor_response("node_id", "neighbors", 7, 9, arg1_int, neighbor_array);
-        respond(c, "200 OK", strlen(response), response);
+        respond(c, "200 OK", 0,"");//strlen(response), response);
         free(response);
+        free(neighbors);
       }
 
     } 

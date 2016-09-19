@@ -299,7 +299,7 @@ uint64_t *get_neighbors(uint64_t id, int* n){
 	runner = v->head;
 	for (i=0; i<size; i++){
 		neighbors[i] = runner->b;
-		runner =runner->next;
+		runner = runner->next;
 	}
 	*n = size;
 	return neighbors;
