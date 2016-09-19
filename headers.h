@@ -11,9 +11,6 @@
 // size of hashtable
 #define SIZE (100000)
 
-// prototype for exit function
-void DIE();
-
 /*
 	Hashtable API prototypes
 */
