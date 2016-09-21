@@ -17,15 +17,14 @@
 extern vertex_map map;
 
 // Responds to given connection with code and length bytes of body
-static void respond(struct mg_connection *c, const char* code, const int length, const char* body) {
-  mg_printf(c, "HTTP/1.1 %s\r\nContent-Length: %d\r\n"
-    "Content-Type: application/json\r\n\r\n%s",
-    code, length, body);
+static void respond(struct mg_connection *c, int code, const int length, const char* body) {
+  mg_send_head(c, code, length, "Content-Type: application/json");
+  mg_printf(c, "%s", body);
 }
 
 // Respond with bad request
 void badRequest(struct mg_connection *c) {
-  respond(c, "400 Bad Request", 0, "");
+  respond(c, 400, 0, "");
 }
 
 // Finds the index of given key in an array of tokens
@@ -137,11 +136,11 @@ static void ev_handler(struct mg_connection *c, int ev, void *p) {
       // returns true if successfully added
       if(add_vertex(arg_int)) {
         response = make_json_one("node_id", 7, arg_int);
-        respond(c, "200 OK", strlen(response), response);
+        respond(c, 200, strlen(response), response);
         free(response);
       } else {
         // vertex already existed
-        respond(c, "204 No Content", 0, "");
+        respond(c, 204, 0, "");
       }
     } 
     else if(!strncmp(hm->uri.p, "/api/v1/add_edge", hm->uri.len)) {
@@ -160,12 +159,12 @@ static void ev_handler(struct mg_connection *c, int ev, void *p) {
       // fix incase of things fucking up
       switch (add_edge(arg_a_int, arg_b_int)) {
         case 400:
-          respond(c, "400 Bad Request", 0, "");
+          respond(c, 400, 0, "");
         case 204:
-          respond(c, "204 No Content", 0, "");
+          respond(c, 204, 0, "");
         case 200:
           response = make_json_two("node_a_id", "node_b_id", 9, 9, arg_a_int, arg_b_int);
-          respond(c, "200 OK", strlen(response), response);
+          respond(c, 200, strlen(response), response);
           free(response);
       }
     } 
@@ -183,10 +182,10 @@ static void ev_handler(struct mg_connection *c, int ev, void *p) {
       // if node does not exist
       if(remove_vertex(arg_int)) {
         response = make_json_one("node_id", 7, arg_int);
-        respond(c, "200 OK", strlen(response), response);
+        respond(c, 200, strlen(response), response);
         free(response);
       } else {
-        respond(c, "400 Bad Request", 0, "");
+        respond(c, 400, 0, "");
       }
     } 
     else if(!strncmp(hm->uri.p, "/api/v1/remove_edge", hm->uri.len)) {
@@ -205,10 +204,10 @@ static void ev_handler(struct mg_connection *c, int ev, void *p) {
       // if edge does not exist
       if(remove_edge(arg_a_int, arg_b_int)) {
           response = make_json_two("node_a_id", "node_b_id", 9, 9, arg_a_int, arg_b_int);
-          respond(c, "200 OK", strlen(response), response);
+          respond(c, 200, strlen(response), response);
           free(response);;
       } else {
-        respond(c, "400 Bad Request", 0, "");
+        respond(c, 400, 0, "");
       }
     } 
     else if(!strncmp(hm->uri.p, "/api/v1/get_node", hm->uri.len)) {
@@ -223,7 +222,7 @@ static void ev_handler(struct mg_connection *c, int ev, void *p) {
 
       bool in_graph = get_node(arg_int);
       response = make_json_one("in_graph", 8, in_graph);
-      respond(c, "200 OK", strlen(response), response);
+      respond(c, 200, strlen(response), response);
       free(response);    
     } 
     else if(!strncmp(hm->uri.p, "/api/v1/get_edge", hm->uri.len)) {
@@ -240,12 +239,12 @@ static void ev_handler(struct mg_connection *c, int ev, void *p) {
       long long arg_b_int = strtoll(tokens[index2 + 1].ptr, &endptr, 10);
 
       if (!get_node(arg_a_int) || !get_node(arg_b_int)){
-        respond(c, "400 Bad Request", 0, "");
+        respond(c, 400, 0, "");
       }
       else {
         bool in_graph = get_edge(arg_a_int, arg_b_int);
         response = make_json_one("in_graph", 8, in_graph);
-        respond(c, "200 OK", strlen(response), response);
+        respond(c, 200, strlen(response), response);
         free(response);    
       }
     } 
@@ -261,13 +260,13 @@ static void ev_handler(struct mg_connection *c, int ev, void *p) {
       long long arg_int = strtoll(tokens[index1 + 1].ptr, &endptr, 10);
 
       if (!get_node(arg_int) ) {
-        respond(c, "400 Bad Request", 0, "");
+        respond(c, 400, 0, "");
       } else {
         int size;
         uint64_t *neighbors = get_neighbors(arg_int, &size);
         char* neighbor_array = format_neighbors(neighbors, size);
         response = make_neighbor_response("node_id", "neighbors", 7, 9, arg_int, neighbor_array);
-        respond(c, "200 OK", strlen(response), response);
+        respond(c, 200, strlen(response), response);
         free(response);
         free(neighbors);
       }
@@ -288,14 +287,14 @@ static void ev_handler(struct mg_connection *c, int ev, void *p) {
       
       // if either node does not exist
       if(!ret_vertex(arg_a_int) || !ret_vertex(arg_b_int)) {
-        respond(c, "400 Bad Request", 0, "");
+        respond(c, 400, 0, "");
       } else {
         int path = shortest_path(arg_a_int, arg_b_int);
         if (path == -1) {
-          respond(c, "204 No Content", 0, "");
+          respond(c, 204, 0, "");
         } else {
           response = make_json_one("distance", 8, path);
-          respond(c, "200 OK", strlen(response), response);
+          respond(c, 200, strlen(response), response);
           free(response);
         }
       }
