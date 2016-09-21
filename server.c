@@ -299,6 +299,9 @@ static void ev_handler(struct mg_connection *c, int ev, void *p) {
         }
       }
     }
+    else{
+      respond(c, 400, 0, "");
+    }
   }
 }
 

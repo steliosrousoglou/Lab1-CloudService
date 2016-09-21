@@ -1,0 +1,7 @@
+Work split:
+
+For this problem set, much of the work was done separately so that we both would understand how it worked. For example, we both created our own hash tables independently and then compared, and used elements from each. 
+Stelios primarily wrote server.c, and figured out how to handle request and send out responses. 
+Alex primarily worked on the backend of different commands, to create the graph, add/delete nodes and edge, and find shortest paths. 
+
+However, altogether there was constant collaboration. 
